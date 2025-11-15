@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block titulo %}Indicadores por Funcionário{% endblock %}
+
+{% block conteudo %}
+<section class="space-y-6">
+  <!-- Cabeçalho + filtro de datas -->
+  <header class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold tracking-tight">Indicadores de desempenho</h2>
+      <p class="text-sm text-slate-400">
+        Acompanhe negócios recebidos, trabalhados, ciclo de vendas e conversão por funcionário.
+      </p>
+    </div>
+    <form method="get" class="flex flex-col md:flex-row gap-2 items-start md:items-end">
+      <div class="flex flex-col gap-1">
+        <label for="inicio" class="text-xs text-slate-400">Início</label>
+        <input
+          type="date"
+          id="inicio"
+          name="inicio"
+          value="{{ inicio }}"
+          class="bg-slate-900 border border-slate-700 text-slate-100 text-xs rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="fim" class="text-xs text-slate-400">Fim</label>
+        <input
+          type="date"
+          id="fim"
+          name="fim"
+          value="{{ fim }}"
+          class="bg-slate-900 border border-slate-700 text-slate-100 text-xs rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+      </div>
+      <button
+        type="submit"
+        class="inline-flex items-center text-xs mt-1 md:mt-0 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
+      >
+        Atualizar indicadores
+      </button>
+    </form>
+  </header>
+
+  <!-- Visão geral do período -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <article class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">Negócios recebidos</p>
+      <p class="text-3xl font-semibold">{{ total_negocios_recebidos_global }}</p>
+      <p class="text-xs text-slate-500 mt-1">
+        Criados no período selecionado.
+      </p>
+    </article>
+
+    <article class="rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/40 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-emerald-300 mb-1">Negócios ganhos</p>
+      <p class="text-3xl font-semibold text-emerald-100">{{ total_negocios_ganhos_global }}</p>
+      <p class="text-xs text-emerald-200/80 mt-1">
+        Marcados como <span class="font-semibold">fechado_ganho</span> no período.
+      </p>
+    </article>
+
+    <article class="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-900/40 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-sky-300 mb-1">Ciclo médio</p>
+      <p class="text-3xl font-semibold text-sky-100">{{ ciclo_medio_global }}<span class="text-base ml-1">dias</span></p>
+      <p class="text-xs text-sky-200/80 mt-1">
+        Tempo médio entre criação e fechamento (ganho).
+      </p>
+    </article>
+
+    <article class="rounded-2xl border border-indigo-500/40 bg-gradient-to-br from-indigo-900/40 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-indigo-300 mb-1">Taxa de conversão</p>
+      <p class="text-3xl font-semibold text-indigo-100">{{ taxa_conversao_global }}<span class="text-base ml-1">%</span></p>
+      <p class="text-xs text-indigo-200/80 mt-1">
+        Negócios ganhos ÷ negócios recebidos no período.
+      </p>
+    </article>
+  </section>
+
+  <!-- Indicadores por funcionário -->
+  <section class="rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden">
+    <header class="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+      <div>
+        <h3 class="text-sm font-semibold">Indicadores por funcionário</h3>
+        <p class="text-xs text-slate-400">
+          Para cada funcionário: negócios recebidos, trabalhados, ciclo médio e taxa de conversão.
+        </p>
+      </div>
+    </header>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-xs">
+        <thead class="bg-slate-900 border-b border-slate-800">
+          <tr>
+            <th class="text-left px-4 py-2 font-medium text-slate-300">Funcionário</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-300">Recebidos</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-300">Trabalhados</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-300">Ganhos</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-300">Ciclo médio (dias)</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-300">Taxa conversão</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-300">Valor ganho (R$)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800">
+          {% if metricas_funcionarios %}
+            {% for m in metricas_funcionarios %}
+              <tr class="hover:bg-slate-900/60 transition-colors">
+                <td class="px-4 py-2">
+                  <div class="font-semibold text-slate-100">
+                    {{ m.funcionario.nome }}
+                  </div>
+                  {% if m.funcionario.cargo %}
+                    <div class="text-[11px] text-slate-400">
+                      {{ m.funcionario.cargo }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-2 text-center text-slate-200">
+                  {{ m.negocios_recebidos }}
+                </td>
+                <td class="px-4 py-2 text-center text-slate-200">
+                  {{ m.negocios_trabalhados }}
+                </td>
+                <td class="px-4 py-2 text-center text-emerald-200">
+                  {{ m.negocios_ganhos }}
+                </td>
+                <td class="px-4 py-2 text-center text-sky-200">
+                  {{ m.ciclo_medio }}
+                </td>
+                <td class="px-4 py-2 text-center text-indigo-200">
+                  {{ m.taxa_conversao }}%
+                </td>
+                <td class="px-4 py-2 text-center text-emerald-200">
+                  R$ {{ '%.2f'|format(m.valor_ganho) }}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="px-4 py-6 text-center text-slate-500">
+                Nenhum funcionário com negócios atribuídos no período selecionado.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Vendas por funcionário (barras horizontais) + vendas por origem -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <article class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+      <header class="mb-3">
+        <h3 class="text-sm font-semibold">Vendas por funcionário</h3>
+        <p class="text-xs text-slate-400">
+          Somente negócios marcados como <span class="font-semibold">fechado_ganho</span> no período.
+        </p>
+      </header>
+      <div class="space-y-2">
+        {% if metricas_funcionarios %}
+          {% for m in metricas_funcionarios %}
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-300 mb-0.5">
+                <span>{{ m.funcionario.nome }}</span>
+                <span>R$ {{ '%.2f'|format(m.valor_ganho) }}</span>
+              </div>
+              <div class="h-2 rounded-full bg-slate-900 overflow-hidden">
+                <div
+                  class="h-2 rounded-full bg-emerald-500"
+                  style="width: {{ m.largura_barra }}%;"
+                ></div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-xs text-slate-500">
+            Ainda não há vendas (negócios ganhos) no período selecionado.
+          </p>
+        {% endif %}
+      </div>
+    </article>
+
+    <!-- Vendas por origem -->
+    <article class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+      <header class="mb-3">
+        <h3 class="text-sm font-semibold">Vendas por origem</h3>
+        <p class="text-xs text-slate-400">
+          Distribuição das vendas por canal de entrada do negócio.
+        </p>
+      </header>
+      <div class="space-y-2">
+        {% if vendas_por_origem %}
+          {% for o in vendas_por_origem %}
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-300 mb-0.5">
+                <span>{{ o.origem }} ({{ o.quantidade }})</span>
+                <span>R$ {{ '%.2f'|format(o.valor) }}</span>
+              </div>
+              <div class="h-2 rounded-full bg-slate-900 overflow-hidden">
+                <div
+                  class="h-2 rounded-full bg-indigo-500"
+                  style="width: {{ o.largura_barra }}%;"
+                ></div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-xs text-slate-500">
+            Nenhuma venda registrada no período para calcular origem.
+          </p>
+        {% endif %}
+      </div>
+    </article>
+  </section>
+
+  <!-- Produtividade por dia -->
+  <section class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+    <header class="mb-3">
+      <h3 class="text-sm font-semibold">Produtividade por dia</h3>
+      <p class="text-xs text-slate-400">
+        Número de negócios ganhos por dia de fechamento no período selecionado.
+      </p>
+    </header>
+    {% if produtividade_por_dia %}
+      <div class="flex gap-2 items-end overflow-x-auto pb-2">
+        {% for p in produtividade_por_dia %}
+          {% set altura = p.largura_barra if p.largura_barra > 10 else 10 %}
+          <div class="flex flex-col items-center min-w-[36px]">
+            <div
+              class="w-4 rounded-t-full bg-emerald-500"
+              style="height: {{ altura }}px;"
+              title="{{ p.quantidade }} negócios"
+            ></div>
+            <span class="mt-1 text-[10px] text-slate-400">
+              {{ p.data.strftime('%d/%m') }}
+            </span>
+            <span class="text-[10px] text-slate-300">
+              {{ p.quantidade }}
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-xs text-slate-500">
+        Ainda não há negócios ganhos no período para montar a curva de produtividade.
+      </p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

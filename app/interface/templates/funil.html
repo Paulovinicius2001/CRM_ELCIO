@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block titulo %}Funil de Vendas{% endblock %}
+
+{% block conteudo %}
+<section class="space-y-6">
+  <!-- Cabeçalho -->
+  <header class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold tracking-tight">Funil de vendas</h2>
+      <p class="text-sm text-slate-400">
+        Visualize a jornada dos negócios da entrada até o fechamento.
+      </p>
+    </div>
+    <div class="flex gap-3">
+      <a href="/docs#/Negócios" target="_blank"
+         class="inline-flex items-center gap-2 text-xs px-3 py-2 rounded-lg border border-slate-700 text-slate-200 hover:border-indigo-500 hover:text-indigo-400 transition-colors">
+        Ver API de negócios
+      </a>
+    </div>
+  </header>
+
+  <!-- Cards de resumo -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <article class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">Total de negócios</p>
+      <p class="text-3xl font-semibold">{{ total_negocios }}</p>
+      <p class="text-xs text-slate-500 mt-1">Somando todas as fases do funil.</p>
+      <p class="text-xs text-slate-400 mt-2">
+        Valor total: <span class="font-semibold text-slate-100">R$ {{ '%.2f'|format(valor_total) }}</span>
+      </p>
+    </article>
+
+    <article class="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-900/40 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-amber-300 mb-1">Novos</p>
+      <p class="text-3xl font-semibold text-amber-100">{{ total_novos }}</p>
+      <p class="text-xs text-amber-200/80 mt-1">
+        Valor em prospecção: R$ {{ '%.2f'|format(valor_novos) }}
+      </p>
+    </article>
+
+    <article class="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-900/40 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-sky-300 mb-1">Em proposta</p>
+      <p class="text-3xl font-semibold text-sky-100">{{ total_em_proposta }}</p>
+      <p class="text-xs text-sky-200/80 mt-1">
+        Valor em negociação: R$ {{ '%.2f'|format(valor_em_proposta) }}
+      </p>
+    </article>
+
+    <article class="rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/40 to-slate-950 p-4">
+      <p class="text-xs uppercase tracking-wide text-emerald-300 mb-1">Fechados (ganhos)</p>
+      <p class="text-3xl font-semibold text-emerald-100">{{ total_ganhos }}</p>
+      <p class="text-xs text-emerald-200/80 mt-1">
+        Valor ganho: R$ {{ '%.2f'|format(valor_ganhos) }}
+      </p>
+      <p class="text-[11px] text-emerald-200/80 mt-2">
+        Taxa de fechamento (do topo até aqui): <span class="font-semibold">{{ taxa_fechamento }}%</span>
+      </p>
+    </article>
+  </section>
+
+  <!-- Colunas do funil (kanban simples) -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Coluna: Novo -->
+    <div class="flex flex-col rounded-2xl border border-amber-500/40 bg-slate-950/70">
+      <header class="px-3 py-2 border-b border-amber-500/40 bg-amber-950/40">
+        <p class="text-xs font-semibold text-amber-200 uppercase tracking-wide">
+          Novo ({{ total_novos }})
+        </p>
+        <p class="text-[11px] text-amber-100/80">
+          Entradas recentes que ainda não foram qualificadas.
+        </p>
+      </header>
+      <div class="p-3 space-y-3 max-h-[480px] overflow-y-auto">
+        {% if novos %}
+          {% for n in novos %}
+            <article class="rounded-xl border border-amber-500/30 bg-amber-950/40 p-3 text-xs space-y-1">
+              <h3 class="text-sm font-semibold text-amber-100">
+                {{ n.titulo }}
+              </h3>
+              {% if n.descricao %}
+                <p class="text-amber-100/80 line-clamp-2">
+                  {{ n.descricao }}
+                </p>
+              {% endif %}
+              <p class="text-amber-200 mt-1">
+                Valor: <span class="font-semibold">R$ {{ '%.2f'|format(n.valor_previsto or 0) }}</span>
+              </p>
+              <div class="flex items-center justify-between text-[11px] text-amber-100/80 mt-1">
+                <span>Origem: {{ n.origem or '-' }}</span>
+                <span>Prob.: {{ n.probabilidade or 0 }}%</span>
+              </div>
+            </article>
+          {% endfor %}
+        {% else %}
+          <p class="text-[11px] text-amber-100/70">
+            Nenhum negócio nesta fase.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Coluna: Em proposta -->
+    <div class="flex flex-col rounded-2xl border border-sky-500/40 bg-slate-950/70">
+      <header class="px-3 py-2 border-b border-sky-500/40 bg-sky-950/40">
+        <p class="text-xs font-semibold text-sky-200 uppercase tracking-wide">
+          Em proposta ({{ total_em_proposta }})
+        </p>
+        <p class="text-[11px] text-sky-100/80">
+          Oportunidades com proposta apresentada ou em negociação.
+        </p>
+      </header>
+      <div class="p-3 space-y-3 max-h-[480px] overflow-y-auto">
+        {% if em_proposta %}
+          {% for n in em_proposta %}
+            <article class="rounded-xl border border-sky-500/30 bg-sky-950/40 p-3 text-xs space-y-1">
+              <h3 class="text-sm font-semibold text-sky-100">
+                {{ n.titulo }}
+              </h3>
+              {% if n.descricao %}
+                <p class="text-sky-100/80 line-clamp-2">
+                  {{ n.descricao }}
+                </p>
+              {% endif %}
+              <p class="text-sky-200 mt-1">
+                Valor: <span class="font-semibold">R$ {{ '%.2f'|format(n.valor_previsto or 0) }}</span>
+              </p>
+              <div class="flex items-center justify-between text-[11px] text-sky-100/80 mt-1">
+                <span>Origem: {{ n.origem or '-' }}</span>
+                <span>Prob.: {{ n.probabilidade or 0 }}%</span>
+              </div>
+              {% if n.data_prevista_fechamento %}
+                <p class="text-[11px] text-sky-100/80 mt-1">
+                  Prev. fechamento: {{ n.data_prevista_fechamento.strftime('%d/%m/%Y') }}
+                </p>
+              {% endif %}
+            </article>
+          {% endfor %}
+        {% else %}
+          <p class="text-[11px] text-sky-100/70">
+            Nenhum negócio nesta fase.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Coluna: Fechado (ganho) -->
+    <div class="flex flex-col rounded-2xl border border-emerald-500/40 bg-slate-950/70">
+      <header class="px-3 py-2 border-b border-emerald-500/40 bg-emerald-950/40">
+        <p class="text-xs font-semibold text-emerald-200 uppercase tracking-wide">
+          Fechado (ganho) ({{ total_ganhos }})
+        </p>
+        <p class="text-[11px] text-emerald-100/80">
+          Negócios concluídos com sucesso.
+        </p>
+      </header>
+      <div class="p-3 space-y-3 max-h-[480px] overflow-y-auto">
+        {% if fechados_ganhos %}
+          {% for n in fechados_ganhos %}
+            <article class="rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3 text-xs space-y-1">
+              <h3 class="text-sm font-semibold text-emerald-100">
+                {{ n.titulo }}
+              </h3>
+              <p class="text-emerald-200 mt-1">
+                Valor final: <span class="font-semibold">R$ {{ '%.2f'|format(n.valor_previsto or 0) }}</span>
+              </p>
+              {% if n.data_prevista_fechamento %}
+                <p class="text-[11px] text-emerald-100/80 mt-1">
+                  Fechado em: {{ n.data_prevista_fechamento.strftime('%d/%m/%Y') }}
+                </p>
+              {% endif %}
+            </article>
+          {% endfor %}
+        {% else %}
+          <p class="text-[11px] text-emerald-100/70">
+            Ainda não há negócios fechados como ganhos.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Coluna: Fechado (perdido) -->
+    <div class="flex flex-col rounded-2xl border border-rose-500/40 bg-slate-950/70">
+      <header class="px-3 py-2 border-b border-rose-500/40 bg-rose-950/40">
+        <p class="text-xs font-semibold text-rose-200 uppercase tracking-wide">
+          Fechado (perdido) ({{ total_perdidos }})
+        </p>
+        <p class="text-[11px] text-rose-100/80">
+          Oportunidades que não avançaram.
+        </p>
+      </header>
+      <div class="p-3 space-y-3 max-h-[480px] overflow-y-auto">
+        {% if fechados_perdidos %}
+          {% for n in fechados_perdidos %}
+            <article class="rounded-xl border border-rose-500/30 bg-rose-950/40 p-3 text-xs space-y-1">
+              <h3 class="text-sm font-semibold text-rose-100">
+                {{ n.titulo }}
+              </h3>
+              {% if n.descricao %}
+                <p class="text-rose-100/80 line-clamp-2">
+                  {{ n.descricao }}
+                </p>
+              {% endif %}
+              <p class="text-rose-200 mt-1">
+                Valor estimado: <span class="font-semibold">R$ {{ '%.2f'|format(n.valor_previsto or 0) }}</span>
+              </p>
+            </article>
+          {% endfor %}
+        {% else %}
+          <p class="text-[11px] text-rose-100/70">
+            Nenhum negócio marcado como perdido.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</section>
+{% endblock %}

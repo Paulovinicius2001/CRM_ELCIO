@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block titulo %}CRM - Painel{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Scrollbar mais bonitinha */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 999px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #020617;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen">
+    <!-- Barra superior -->
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-20">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center text-sm font-bold">
+            CRM
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold tracking-tight">Painel do CRM</h1>
+            <p class="text-xs text-slate-400">Leads, clientes e funil em um só lugar.</p>
+          </div>
+        </div>
+        <nav class="flex items-center gap-4 text-sm text-slate-300">
+            <a href="/" class="hover:text-indigo-400 transition-colors">API</a>
+            <a href="/docs" class="hover:text-indigo-400 transition-colors">Docs</a>
+            <a href="/painel" class="hover:text-indigo-400 transition-colors">Contatos</a>
+            <a href="/funil" class="hover:text-indigo-400 transition-colors">Funil</a>
+            <a href="/indicadores" class="text-indigo-400 font-medium">Indicadores</a>
+</nav>
+
+
+      </div>
+    </header>
+
+    <!-- Conteúdo principal -->
+    <main class="max-w-6xl mx-auto px-4 py-6">
+      {% block conteudo %}{% endblock %}
+    </main>
+
+    <!-- Rodapé simples -->
+    <footer class="border-t border-slate-800 mt-8">
+      <div class="max-w-6xl mx-auto px-4 py-4 text-xs text-slate-500 flex justify-between">
+        <span>CRM Genérico • Feito em FastAPI</span>
+        <span>/api/v1/contatos • pronto para n8n ⚙️</span>
+      </div>
+    </footer>
+  </body>
+</html>
